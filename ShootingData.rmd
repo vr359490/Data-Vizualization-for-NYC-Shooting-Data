@@ -1,0 +1,181 @@
+---
+title: "Shooting Locations Based on Missing Demographic Information of Pepertrator"
+output: html_document
+date: "2024-07-15"
+---
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+library(tidyverse)
+library(ggplot2)
+
+```
+# Introduction
+
+   This project analyzes shooting data in New York City since 2006. In many cases, there were missing perpetrator data, specifically demographic information such age group, race, and/or sex of the perpetrator. Having complete and robust data on the perpetrator is important because it helps identify them. For my project, I chose to analyze whether this missing data was dependent on location. This could help in identifying if there are some areas that are prone to having missing perpetrator information. If so, this could help in directing policy making, resource allocation, and/or collaboration so that those areas can learn to more effectively obtain perpetrator information.
+
+  For my three visualizations, I decided to plot shootings using scatter plots. For my data models, I chose to model the density of shootings using heat maps.
+
+# Processing the Data
+
+In processing the data, the original data set was split into two sets: One in which the perpetrator had missing demographic information (age group, race, and/or sex) and another in which this information was present. Specifically, this was done by filtering the PERP_AGE_GROUP column. If the shooting was missing this information, that shooting would be considered to have missing demographic data. This is because if the perpetrator's age group was recorded then this is likely to be indicative that the perpetrator was caught and identified properly as opposed to race and sex which can more easily be identified visually. 
+
+The filtering was done by iterating over the PERP_AGE_GROUP column and checking to see if that data was blank (""), a null value, or UNKNOWN. If these values were present, that shooting was considered to have missing demographic information. It isn't quite clear the differences between these values, and the original website seemed to be missing documentation on the nuances. It *is* clear, however, that the presence of any of these three values indicates missing data.
+
+A new column called demog_stat was generated and appended to the original data. A value of 0 in this column indicated missing demographic data, while a 1 indicated that the pertinent demographic data was present. 
+
+Filtering by the new demog_stat column, the two new data sets, missing_demog and full_demog, were created.
+
+```{r plot1, echo = TRUE}
+
+data <- read.csv('https://data.cityofnewyork.us/api/views/833y-fsy8/rows.csv?accessType=DOWNLOAD')
+perp_age_group <- data[,11]
+
+demog_stat = c()
+
+for (i in perp_age_group){
+  
+  if(i=="" | i=="(null)" | i=="UNKNOWN"){
+    demog_stat = c(demog_stat, 0)
+  }
+  else{
+    demog_stat = c(demog_stat, 1)
+    }
+}
+
+data <- data %>% mutate(DEMOGRAPHICS_STATUS = demog_stat)
+
+# These split in missing_demog and full_demog
+missing_demog <- data %>% filter(DEMOGRAPHICS_STATUS == 0) %>% select(-c("Lon_Lat"))
+full_demog <- data %>% filter(DEMOGRAPHICS_STATUS == 1) %>% select(-c("Lon_Lat"))
+
+
+
+
+```
+
+# Visualization
+
+The location of the newly generated data sets were plotted using scatter plots. A scatter plot was used so that the data could be observed at a finer granularity.
+
+In addition, the opacity of each point was reduced so that shootings in overlapping locations could more easily be observed. 
+
+```{r plot2, echo = TRUE, fig.width = 10, fig.height=7}
+ggplot(data = missing_demog, mapping = aes(x = Latitude, y = Longitude)) +
+  geom_point(
+          colour = "red",
+          alpha = 0.1
+          ) + 
+  ggtitle("Location of New York City Shootings with Missing Perpetrator Information (Age, Race, and/or Sex) Since 2006") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+```{r plot3, echo = TRUE, fig.width = 10, fig.height=7}
+ggplot(data = full_demog, mapping = aes(x = Latitude, y = Longitude)) +
+  geom_point(
+          colour = "turquoise",
+          alpha = 0.1) + 
+  ggtitle("Location of New York City Shootings without Missing Perpetrator Information Since 2006") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+```{r plot4, echo = TRUE, fig.width = 10, fig.height=7}
+ggplot(data = data, mapping = aes(x = Latitude, y = Longitude)) +
+  geom_point(
+          mapping = aes(colour = cut(DEMOGRAPHICS_STATUS, c(-Inf, 0 , Inf))),
+          alpha = 1/5
+          ) +
+  scale_color_manual(
+          name = "Legend",
+          values = c("(-Inf,0]" = "red", "(0, Inf]" = "turquoise"),
+          labels = c("Missing demographics", "Full demographics")
+          ) + 
+  xlim(40.55, NA) + 
+  ylim(-74.2, NA) + 
+  ggtitle("Location of All New York City Shootings Since 2006") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+After that, a heat map of two data sets were generated. Using a heat map allows the density of shootings to more easily be observed over scatter plots. As a result, areas of higher shooting density can be modeled and identified.
+
+```{r plot5, echo = TRUE, fig.width = 10, fig.height=7}
+ggplot(data = missing_demog, mapping = aes(x = Latitude, y = Longitude)) + 
+  geom_density2d_filled(breaks = c(0,11,22,33,44,55,66,78,90,103)) + 
+  xlim(40.55, NA) + 
+  ylim(-74.1, NA) + 
+  ggtitle("Density of Shootings with Missing Perpetrator Information Since 2006") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  guides(fill=guide_legend(title="Number of Shootings"))
+```
+
+```{r plot6, echo = TRUE, fig.width = 10, fig.height=7}
+
+ggplot(data = full_demog, mapping = aes(x = Latitude, y = Longitude)) + 
+  geom_density2d_filled(breaks = c(0,11,22,33,44,55,66,78,90,103)) + 
+  xlim(40.55, NA) + 
+  ylim(-74.1, NA) + 
+  ggtitle("Density of Shootings without Missing Perpetrator Information Since 2006") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  guides(fill=guide_legend(title="Number of Shootings"))
+```
+
+# Data Model
+
+A very basic data model was created by taking the average location of shooting location by borough.
+
+By mapping the average location, we can get a very rough prediction of where shootings are likely to occur next in each borough.
+
+```{r model, echo = TRUE, fig.width = 10, fig.height=7}
+brooklyn <- na.omit(data %>% filter(BORO == "BROOKLYN"))
+brooklyn_lat = sum(brooklyn$Latitude)/nrow(brooklyn)
+brooklyn_long = sum(brooklyn$Longitude)/nrow(brooklyn)
+brooklyn_coord <- data.frame(lat=brooklyn_lat, long=brooklyn_long)
+
+manhattan <- na.omit(data %>% filter(BORO == "MANHATTAN"))
+manhattan_lat = sum(manhattan$Latitude)/nrow(manhattan)
+manhattan_long = sum(manhattan$Longitude)/nrow(manhattan)
+manhattan_coord <- data.frame(lat=manhattan_lat, long=manhattan_long)
+
+queens <- na.omit(data %>% filter(BORO == "QUEENS"))
+queens_lat = sum(queens$Latitude)/nrow(queens)
+queens_long = sum(queens$Longitude)/nrow(queens)
+queens_coord <- data.frame(lat=queens_lat, long=queens_long)
+
+bronx <- na.omit(data %>% filter(BORO == "BRONX"))
+bronx_lat = sum(bronx$Latitude)/nrow(bronx)
+bronx_long = sum(bronx$Longitude)/nrow(bronx)
+bronx_coord <- data.frame(lat=bronx_lat, long=bronx_long)
+
+staten_island <- na.omit(data %>% filter(BORO == "STATEN ISLAND"))
+staten_island_lat = sum(staten_island$Latitude)/nrow(staten_island)
+staten_island_long = sum(staten_island$Longitude)/nrow(staten_island)
+staten_island_coord <- data.frame(lat=staten_island_lat, long=staten_island_long)
+
+ggplot(brooklyn, aes(Latitude, Longitude)) + 
+  geom_point(color = "orange", alpha = 0.05) + 
+  geom_point(data = manhattan, color = "green", alpha = 0.05) + 
+  geom_point(data = queens, color = "brown", alpha = 0.05) + 
+  geom_point(data = bronx,color = "blue", alpha = 0.01) + 
+  geom_point(data = staten_island,color= "magenta", alpha = 0.05)+
+  
+  geom_point(data = brooklyn_coord, mapping = aes(lat, long), shape = "triangle", color = "brown", size = 4) +
+  geom_point(data = manhattan_coord, mapping = aes(lat, long), shape = "triangle", color = "darkgreen", size = 4) +
+  geom_point(data = queens_coord, mapping = aes(lat, long), shape = "triangle", color = "black", size = 4) + 
+  geom_point(data =bronx_coord, mapping = aes(lat, long), shape = "triangle", color = "darkblue", size = 4) + 
+  geom_point(data = staten_island_coord, mapping = aes(lat, long), shape = "triangle", color = "purple", size = 4)
+  
+
+
+```
+
+# Conclusion
+
+  The heat maps which plot the density of shootings show that the shootings with missing perpetrator demographics are more likely to occur on the west side of New York City, whereas shootings with complete demographic information are more likely to occur on the east side.
+  
+  Facilitating collaboration between these two areas and comparing their methods for obtaining perpetrator information could help identify weaknesses in the processes and lead to better outcomes.
+  
+# Bias
+
+  One source of bias came from how the initial data set was split. The original data was split into two sets: Shootings with and without missing demographics. This was done my filtering the PERP_AGE_GROUP column. In the missing demographics data set, it was *mostly* the case that if age was missing, then so were race and sex, however, there were many cases where only the age was missing and the other two data points were not. In other words,the perpetrator's age group was considered more penalizing than if the perpetrator's race or sex was missing.
+  
+  This decision was made under the assumption that race and sex can often be determined visually if the perpetrator was seen. However, if the perpetrator's age group was recorded then this is likely to be indicative that the perpetrator was caught and identified properly. It is unclear, however, if that is the case and is a part of the analysis that could do well with a bit more scrutiny. 
