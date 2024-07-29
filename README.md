@@ -1,6 +1,6 @@
-Analyzing Shooting Locations in New York City Based on Missing Demographic Information of Pepertrator 
+<h1>Analyzing Shooting Locations in New York City Based on Missing Demographic Information of Pepertrator </h1>
 
-1. Project Description 
+<h2>1. Project Description </h2>
 
 Using data from the City of New York website, basic analysis was performed on shooting data from 2006-2021. The goal of this project was to learn how to create data
 vizualisations in R. 
@@ -11,7 +11,7 @@ After analyzing the locations of shootings, it was found that shootings with mis
 whereas shootings with complete demographic information are more likely to occur on the east side. With that said, this was over a 15-year period, and should, therefore,
 be analyzed with finer granularity to determine whether or not this conclusion of shooting density applies to recent trends. 
 
-2. How to Install and Run the Project 
+<h2> 2. How to Install and Run the Project </h2>
 
 This file is an R markdown file which can be run and compiled using R Studio. 
   
