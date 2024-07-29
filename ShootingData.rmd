@@ -3,7 +3,7 @@ title: "Shooting Locations Based on Missing Demographic Information of Pepertrat
 output: html_document
 date: "2024-07-15"
 ---
-```{r setup, include=TRUE}
+```{r setup, include=TRUE, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 library(tidyverse)
 library(ggplot2)
@@ -11,7 +11,7 @@ library(ggplot2)
 ```
 # Introduction
 
-   This project analyzes shooting data in New York City since 2006. In many cases, there were missing perpetrator data, specifically demographic information such age group, race, and/or sex of the perpetrator. Having complete and robust data on the perpetrator is important because it helps identify them. For my project, I chose to analyze whether this missing data was dependent on location. This could help in identifying if there are some areas that are prone to having missing perpetrator information. If so, this could help in directing policy making, resource allocation, and/or collaboration so that those areas can learn to more effectively obtain perpetrator information.
+   This project analyzes shooting data in New York City since 2006. In many cases, there were missing perpetrator data, specifically demographic information such age group, race, and/or sex of the perpetrator. Having complete and robust data on the perpetrator is important because it helps identify them. For my project, I chose to analyze whether this missing data was dependent on location. This could help in identifying if there are some areas that are prone to having missing perpetrator information. If so, this could help in directing policy making, resource allocation, and/or collaboration so that those areas can learn to more effectively obtain perpetrator information. The data used in this analysis was downloaded from the following website: https://data.cityofnewyork.us/api/views/833y-fsy8/rows.csv?accessType=DOWNLOAD
 
   For my three visualizations, I decided to plot shootings using scatter plots. For my data models, I chose to model the density of shootings using heat maps.
 
