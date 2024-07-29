@@ -1,4 +1,4 @@
-Shooting Locations Based on Missing Demographic Information of Pepertrator 
+Analyzing Shooting Locations in New York City Based on Missing Demographic Information of Pepertrator 
 
 1. Project Description 
 
