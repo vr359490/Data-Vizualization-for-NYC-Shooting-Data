@@ -48,9 +48,6 @@ data <- data %>% mutate(DEMOGRAPHICS_STATUS = demog_stat)
 missing_demog <- data %>% filter(DEMOGRAPHICS_STATUS == 0) %>% select(-c("Lon_Lat"))
 full_demog <- data %>% filter(DEMOGRAPHICS_STATUS == 1) %>% select(-c("Lon_Lat"))
 
-
-
-
 ```
 
 # Visualization
@@ -164,7 +161,6 @@ ggplot(brooklyn, aes(Latitude, Longitude)) +
   geom_point(data =bronx_coord, mapping = aes(lat, long), shape = "triangle", color = "darkblue", size = 4) + 
   geom_point(data = staten_island_coord, mapping = aes(lat, long), shape = "triangle", color = "purple", size = 4)
   
-
 
 ```
 
